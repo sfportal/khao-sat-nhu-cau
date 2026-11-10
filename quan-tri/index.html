@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Quản trị form khảo sát nhu cầu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #13303B; --text: #1F2933; --muted: #5B6B73; --bg: #F4F7F8; --surface: #FFFFFF;
+  --line: #D8E1E5; --accent: #11878A; --accent-soft: #E1F1F1; --err: #C8553D; --ok: #2E7D4F;
+  --font: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif; color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 400 15px/1.55 var(--font); }
+h1, h2 { color: var(--ink); margin: 0; }
+h1 { font-size: 24px; font-weight: 800; }
+h2 { font-size: 17px; font-weight: 700; }
+p { margin: 0; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 32px 16px 56px; display: grid; gap: 16px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 12px; }
+label.f { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ink); }
+input[type=password], input[type=text] { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; width: 100%; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hint { font-size: 13px; color: var(--muted); font-weight: 400; }
+.btn { font: inherit; font-weight: 700; background: var(--ink); color: #fff; border: 0; border-radius: 10px; padding: 11px 14px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn:disabled { opacity: .6; cursor: wait; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 14px; font-weight: 600; }
+.msg.err { color: var(--err); } .msg.ok { color: var(--ok); }
+.status { display: flex; gap: 10px; align-items: center; background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--err); flex: none; }
+.dot.on { background: var(--ok); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+a { color: var(--accent); }
+code { background: var(--bg); padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div><p class="eyebrow">BVI · Form khảo sát nhu cầu</p><h1>Quản trị</h1></div>
+
+  <!-- Khóa PIN -->
+  <form id="lock" class="card" autocomplete="off">
+    <h2>Nhập mã PIN</h2>
+    <label class="f">Mã PIN<input type="password" id="pin" autofocus></label>
+    <div class="row"><button class="btn" id="pinBtn">Vào trang quản trị</button><span class="msg err" id="pinErr" role="alert"></span></div>
+  </form>
+
+  <section id="panel" hidden style="display:grid;gap:16px">
+    <div class="card">
+      <h2>Trạng thái form</h2>
+      <div class="status"><span class="dot" id="dot"></span><span id="stateText">Đang kiểm tra…</span></div>
+      <p class="hint">Form công khai: <a href="../" target="_blank" rel="noopener">sfportal.github.io/khao-sat-nhu-cau</a>. Nhu cầu khách gửi xem trong <a href="https://sfportal.github.io/bvi-dieu-hanh/" target="_blank" rel="noopener">BVI Điều hành › Nhu cầu khách hàng</a>.</p>
+    </div>
+
+    <form id="cfg" class="card" autocomplete="off">
+      <h2>Thiết lập BVI_KEY</h2>
+      <label class="f">BVI_KEY
+        <input type="password" id="key" placeholder="Dán khóa API mới">
+        <span class="hint">Chỉ dùng khóa có <b>duy nhất quyền <code>leads_write</code></b>. Khóa này nằm công khai trong trang form. Để trống rồi lưu thì form về chế độ chạy thử.</span>
+      </label>
+      <label class="f">GitHub token
+        <input type="password" id="gh" placeholder="github_pat_…">
+        <span class="hint">Cần để lưu khóa lên repo. Tạo <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>: Repository access chọn riêng <code>sfportal/khao-sat-nhu-cau</code>, Permissions › Contents: <b>Read and write</b>.</span>
+      </label>
+      <label class="check"><input type="checkbox" id="remember"> Ghi nhớ GitHub token trên máy này</label>
+      <div class="row">
+        <button class="btn" id="saveBtn">Lưu và xuất bản</button>
+        <button type="button" class="btn ghost" id="logout">Khóa lại</button>
+      </div>
+      <p class="msg" id="saveMsg" role="status"></p>
+      <p class="hint">Sau khi lưu, form công khai dùng khóa mới trong khoảng 1–2 phút. Thấy nhu cầu rác: thu hồi khóa trong BVI Điều hành, tạo khóa mới và lưu lại ở đây.</p>
+    </form>
+  </section>
+</main>
+
+<script>
+const REPO = "sfportal/khao-sat-nhu-cau", FILE = "config.json", BRANCH = "main";
+// Chỉ lưu dạng băm PBKDF2 của mã PIN, không lưu mã gốc.
+const PIN_SALT = "ba9856b8000e1b828fac7a11feed4220";
+const PIN_HASH = "8263d54a52b0cad3f15cae7c0858e32d3454012a3d174b78ccb07316678b9521";
+const PIN_ITER = 300000;
+const $ = (id) => document.getElementById(id);
+const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const unhex = (h) => new Uint8Array(h.match(/../g).map((x) => parseInt(x, 16)));
+
+async function hashPin(pin) {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+  return hex(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: unhex(PIN_SALT), iterations: PIN_ITER }, k, 256));
+}
+
+function unlock() {
+  $("lock").hidden = true; $("panel").hidden = false;
+  const t = localStorage.getItem("ksnc_gh"); if (t) { $("gh").value = t; $("remember").checked = true; }
+  refreshState();
+}
+
+$("lock").addEventListener("submit", async (e) => {
+  e.preventDefault(); $("pinErr").textContent = ""; $("pinBtn").disabled = true;
+  try {
+    if (await hashPin($("pin").value.trim()) === PIN_HASH) { sessionStorage.setItem("ksnc_ok", PIN_HASH); unlock(); }
+    else { $("pinErr").textContent = "Mã PIN không đúng."; $("pin").select(); }
+  } finally { $("pinBtn").disabled = false; }
+});
+if (sessionStorage.getItem("ksnc_ok") === PIN_HASH) unlock();
+
+$("logout").addEventListener("click", () => { sessionStorage.removeItem("ksnc_ok"); location.reload(); });
+
+async function refreshState() {
+  try {
+    const r = await fetch("../config.json?t=" + Date.now(), { cache: "no-store" });
+    const k = r.ok ? ((await r.json()).bvi_key || "").trim() : "";
+    $("dot").classList.toggle("on", !!k);
+    $("stateText").textContent = k ? `Đang gửi thật về BVI Điều hành (khóa …${k.slice(-4)})` : "Chạy thử: chưa có BVI_KEY, nhu cầu khách chưa được gửi đi";
+  } catch (_) { $("stateText").textContent = "Không đọc được cấu hình hiện tại."; }
+}
+
+const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+
+$("cfg").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = $("saveMsg"); msg.className = "msg"; msg.textContent = "";
+  const key = $("key").value.trim(), gh = $("gh").value.trim();
+  if (!gh) { msg.className = "msg err"; msg.textContent = "Cần GitHub token để lưu."; return; }
+  if (key && !/^[\w.\-]{16,}$/.test(key)) { msg.className = "msg err"; msg.textContent = "Khóa có vẻ không đúng định dạng, kiểm tra lại."; return; }
+  if ($("remember").checked) localStorage.setItem("ksnc_gh", gh); else localStorage.removeItem("ksnc_gh");
+  const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Đang lưu…";
+  const api = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+  const headers = { Authorization: "Bearer " + gh, Accept: "application/vnd.github+json" };
+  try {
+    const cur = await fetch(api + "?ref=" + BRANCH, { headers, cache: "no-store" });
+    if (cur.status === 401) throw new Error("GitHub token sai hoặc đã hết hạn");
+    const sha = cur.ok ? (await cur.json()).sha : undefined;
+    const body = { message: key ? "Cập nhật BVI_KEY từ trang quản trị" : "Gỡ BVI_KEY, form về chạy thử", branch: BRANCH,
+      content: b64(JSON.stringify({ bvi_key: key }, null, 2) + "\n"), ...(sha ? { sha } : {}) };
+    const r = await fetch(api, { method: "PUT", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(r.status === 403 || r.status === 404 ? "Token chưa có quyền Contents: Read and write trên repo này" : (j.message || "Lỗi " + r.status));
+    }
+    $("key").value = "";
+    msg.className = "msg ok"; msg.textContent = key ? `Đã lưu khóa …${key.slice(-4)}. Form dùng khóa mới sau 1–2 phút.` : "Đã gỡ khóa. Form về chế độ chạy thử sau 1–2 phút.";
+    setTimeout(refreshState, 60000);
+  } catch (err) {
+    msg.className = "msg err"; msg.textContent = "Chưa lưu được: " + (err.message || err) + ".";
+  } finally { btn.disabled = false; btn.textContent = "Lưu và xuất bản"; }
+});
+</script>
+</body>
+</html>

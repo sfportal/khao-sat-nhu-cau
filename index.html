@@ -193,9 +193,14 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
 
 <script>
 // CẤU HÌNH (xem README)
-// BVI_KEY: khóa API BVI CHỈ có quyền leads_write. Khóa này công khai trong mã trang,
-// tuyệt đối không dùng khóa có quyền đọc. Để trống thì form chạy thử, không gửi đi đâu.
-const BVI_KEY = "";
+// BVI_KEY: khóa API BVI CHỈ có quyền leads_write, đặt trong trang /quan-tri (lưu vào config.json).
+// Khóa này công khai, tuyệt đối không dùng khóa có quyền đọc. Để trống thì form chạy thử.
+let BVI_KEY = "";
+async function loadKey() {
+  try { const r = await fetch("config.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) BVI_KEY = ((await r.json()).bvi_key || "").trim(); } catch (_) {}
+  return BVI_KEY;
+}
+loadKey();
 const LEADS_API = "https://pkckduidwfcncipwzdxa.supabase.co/functions/v1/api/v1/leads";
 
 const PAINS = ["Kinh doanh, bán hàng", "Marketing, nội dung", "Thiết kế, sáng tạo", "Quản lý công việc, nhân sự", "Theo dõi, giám sát vận hành", "Chi phí, hiệu quả"];
@@ -243,7 +248,7 @@ $("form").addEventListener("submit", async (e) => {
       page: location.href, sent_at: new Date().toISOString(),
     };
     if (payload.website) { showDone(payload, false); return; } // bẫy bot
-    const demo = !BVI_KEY;
+    const demo = !(BVI_KEY || await loadKey());
     const extId = "ksnc-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     // Gửi thẳng vào BVI Điều hành (trang Nhu cầu khách hàng)
     const [y0, m0, d00] = payload.date.split("-");
