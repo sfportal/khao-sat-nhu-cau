@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khảo sát nhu cầu AI và đặt lịch tư vấn</title>
+<meta name="description" content="Gửi nhu cầu ứng dụng AI của doanh nghiệp và đặt lịch tư vấn 1:1 với BVI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Một cột, rộng tối đa 720px, dùng tốt trên điện thoại 390px */
+  --ink: #13303B;
+  --text: #1F2933;
+  --muted: #5B6B73;
+  --bg: #F4F7F8;
+  --surface: #FFFFFF;
+  --line: #D8E1E5;
+  --accent: #11878A;
+  --accent-soft: #E1F1F1;
+  --err: #C8553D;
+  --font: "Be Vietnam Pro", "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 400 15px/1.55 var(--font); }
+h1, h2 { color: var(--ink); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(23px, 5vw, 32px); font-weight: 800; line-height: 1.2; }
+h2 { font-size: 18px; font-weight: 700; }
+p { margin: 0; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 56px; display: grid; gap: 16px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.lead { color: var(--muted); }
+.head { display: grid; gap: 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 14px; }
+.step { display: flex; gap: 10px; align-items: center; }
+.num { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
+.full { grid-column: 1 / -1; }
+label.f { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.req { color: var(--err); }
+input[type=text], input[type=tel], input[type=email], input[type=date], select, textarea {
+  font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; width: 100%;
+}
+textarea { min-height: 110px; resize: vertical; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hint { font-size: 13px; color: var(--muted); font-weight: 400; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.chip span { display: inline-block; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-size: 14px; cursor: pointer; }
+.chip input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.group { display: grid; gap: 8px; }
+.group > b { font-size: 13px; color: var(--ink); }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; background: var(--bg); display: grid; gap: 6px; cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop b { color: var(--ink); }
+.files { display: grid; gap: 6px; }
+.file { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+.file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.file button { font: inherit; border: 0; background: none; color: var(--err); font-weight: 600; cursor: pointer; padding: 2px 6px; }
+.err { color: var(--err); font-size: 13px; font-weight: 600; }
+.consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.consent input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.submit { font: inherit; font-size: 16px; font-weight: 700; background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 14px; width: 100%; cursor: pointer; }
+.submit[disabled] { opacity: .6; cursor: wait; }
+.offer { background: var(--accent-soft); border-radius: 12px; padding: 14px; font-size: 14px; display: grid; gap: 4px; }
+.offer b { color: var(--ink); }
+.done { text-align: center; display: grid; gap: 10px; justify-items: center; padding: 28px 18px; }
+.done .tick { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 28px; font-weight: 800; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+footer { font-size: 12px; color: var(--muted); text-align: center; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">Hội thảo AI thực chiến · BVI</div>
+    <h1>Gửi nhu cầu và đặt lịch tư vấn AI 1:1</h1>
+    <p class="lead">Cho chúng tôi biết công ty đang gặp khó ở đâu. Chọn ngày giờ thuận tiện, nhân sự BVI sẽ liên hệ xác nhận và tư vấn riêng 30 đến 60 phút.</p>
+  </header>
+
+  <form id="form" novalidate>
+    <div style="display:grid;gap:16px">
+      <section class="card" aria-labelledby="h1s">
+        <div class="step"><span class="num">1</span><h2 id="h1s">Thông tin liên hệ</h2></div>
+        <div class="fields">
+          <label class="f" for="name"><span>Họ và tên <span class="req">*</span></span><input id="name" name="name" type="text" autocomplete="name" required></label>
+          <label class="f" for="org"><span>Công ty / HTX</span><input id="org" name="org" type="text" autocomplete="organization"></label>
+          <label class="f" for="phone"><span>Số điện thoại / Zalo <span class="req">*</span></span><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+          <label class="f" for="email"><span>Email</span><input id="email" name="email" type="email" autocomplete="email"></label>
+          <label class="f" for="role"><span>Chức vụ</span><input id="role" name="role" type="text" placeholder="VD: Giám đốc, Trưởng phòng KD"></label>
+          <label class="f" for="province"><span>Tỉnh / thành</span><input id="province" name="province" type="text" placeholder="VD: Đắk Lắk"></label>
+          <label class="f" for="industry"><span>Ngành</span><select id="industry" name="industry">
+              <option value="">Chọn ngành</option>
+              <option>Nông nghiệp, HTX, vùng trồng</option>
+              <option>Sản xuất, chế biến</option>
+              <option>Thương mại, phân phối, bán lẻ</option>
+              <option>Dịch vụ, tư vấn, giáo dục</option>
+              <option>F&amp;B, nhà hàng, khách sạn</option>
+              <option>Xây dựng, bất động sản</option>
+              <option>Ngành khác</option>
+            </select>
+          </label>
+          <label class="f" for="size"><span>Số nhân sự</span><select id="size" name="size">
+              <option value="">Chọn quy mô</option>
+              <option>Dưới 10 người</option>
+              <option>10 đến 50 người</option>
+              <option>51 đến 200 người</option>
+              <option>Trên 200 người</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h2s">
+        <div class="step"><span class="num">2</span><h2 id="h2s">Nhu cầu của công ty</h2></div>
+        <div class="group">
+          <b>Mảng đang gặp khó</b>
+          <div class="chips" id="pains"></div>
+        </div>
+        <div class="group">
+          <b>Dịch vụ quan tâm</b>
+          <div class="chips" id="needs"></div>
+        </div>
+        <label class="f" for="detail"><span>Mô tả nhu cầu cụ thể <span class="req">*</span></span><span class="hint">Việc gì đang mất thời gian, tốn chi phí, hay sai sót? Đang dùng phần mềm gì? Mong muốn kết quả ra sao?</span>
+          <textarea id="detail" name="detail" required placeholder="VD: Đơn hàng nhận qua Zalo của 5 nhân viên, cuối tháng tổng hợp mất 3 ngày, hay sót đơn. Muốn có một nơi quản lý đơn và báo cáo tự động."></textarea>
+        </label>
+        <div class="group">
+          <b>Hình ảnh, tệp minh hoạ</b>
+          <span class="hint">Ảnh chụp màn hình phần mềm, mẫu báo cáo, quy trình hiện tại… Tối đa 5 tệp, mỗi tệp dưới 5MB (ảnh, PDF, Word, Excel).</span>
+          <label class="drop" id="drop" for="file">
+            <b>Bấm để chọn tệp</b>
+            <span class="hint">hoặc kéo thả tệp vào đây</span>
+          </label>
+          <input id="file" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt" hidden>
+          <div class="files" id="files"></div>
+          <p class="err" id="fileErr" role="alert"></p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h3s">
+        <div class="step"><span class="num">3</span><h2 id="h3s">Đặt lịch tư vấn 1:1</h2></div>
+        <div class="fields">
+          <label class="f" for="date"><span>Ngày mong muốn <span class="req">*</span></span><input id="date" name="date" type="date" required></label>
+          <label class="f" for="slot"><span>Khung giờ <span class="req">*</span></span><select id="slot" name="slot" required>
+              <option value="">Chọn khung giờ</option>
+              <option>Sáng 8:00 – 11:30</option>
+              <option>Chiều 13:30 – 17:00</option>
+              <option>Tối 19:00 – 21:00</option>
+            </select>
+          </label>
+        </div>
+        <div class="group">
+          <b>Thời lượng</b>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="duration" value="30 phút" checked><span>30 phút</span></label>
+            <label class="chip"><input type="radio" name="duration" value="60 phút"><span>60 phút</span></label>
+          </div>
+        </div>
+        <div class="group">
+          <b>Hình thức</b>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="mode" value="Online (Zalo, Google Meet)" checked><span>Online (Zalo, Google Meet)</span></label>
+            <label class="chip"><input type="radio" name="mode" value="Gặp trực tiếp"><span>Gặp trực tiếp</span></label>
+          </div>
+        </div>
+        <p class="hint">Nhân sự BVI sẽ gọi hoặc nhắn Zalo để xác nhận giờ chính xác trước buổi tư vấn.</p>
+        <div class="offer">
+          <b>Chính sách đặt cọc khi triển khai</b>
+          <span>Nếu cần tư vấn chuyên sâu cho dự án, đặt cọc 1.000.000đ để được sắp xếp trong 1 tuần. Hai bên ký biên bản ghi nhớ hoặc hợp đồng thì khoản cọc trừ vào chi phí triển khai; không ký thì hoàn lại đủ.</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="fields">
+          <label class="f" for="source"><span>Bạn biết đến BVI qua</span><select id="source" name="source">
+              <option>Hội thảo AI 10/11</option>
+              <option>Người giới thiệu</option>
+              <option>Facebook</option>
+              <option>Zalo</option>
+              <option>Website</option>
+              <option>Khác</option>
+            </select>
+          </label>
+          <label class="f" for="referrer"><span>Người giới thiệu</span><input id="referrer" name="referrer" type="text"></label>
+        </div>
+        <label class="consent" for="consent"><input id="consent" type="checkbox" required><span>Tôi đồng ý để BVI lưu thông tin này và liên hệ tư vấn.</span></label>
+        <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <p class="err" id="formErr" role="alert"></p>
+        <button class="submit" id="submit" type="submit">Gửi nhu cầu và đặt lịch</button>
+      </section>
+    </div>
+  </form>
+
+  <section class="card done" id="done" hidden aria-live="polite">
+    <div class="tick">✓</div>
+    <h2>Đã nhận nhu cầu của bạn</h2>
+    <p id="doneText">Nhân sự BVI sẽ liên hệ để xác nhận lịch tư vấn.</p>
+    <p class="hint">Cần gấp, nhắn Zalo 0901 403 819.</p>
+  </section>
+
+  <footer>Công ty CP BVI · Thông tin chỉ dùng để liên hệ tư vấn, không chia sẻ cho bên khác.</footer>
+</div>
+
+<script>
+// ĐỊA CHỈ WEB APP CỦA APPS SCRIPT (xem README). Để trống thì form chạy thử, không gửi đi đâu.
+const ENDPOINT = "";
+
+const MAX_FILES = 5, MAX_SIZE = 5 * 1024 * 1024;
+const PAINS = ["Kinh doanh, bán hàng", "Marketing, nội dung", "Thiết kế, sáng tạo", "Quản lý công việc, nhân sự", "Theo dõi, giám sát vận hành", "Chi phí, hiệu quả"];
+const NEEDS = ["Làm video AI", "Thu thập và phân tích dữ liệu", "Website và trang quản lý", "Chatbot chăm sóc khách", "CRM, quản lý khách hàng", "Quản lý công việc", "Nhân viên số (Digital Worker)", "Số hoá vùng trồng FarmBase", "Đào tạo AI cho nhân viên", "Lộ trình AI tổng thể"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+$("pains").innerHTML = PAINS.map((p, i) => `<label class="chip"><input type="checkbox" name="pains" id="pain-${i}" value="${esc(p)}"><span>${esc(p)}</span></label>`).join("");
+$("needs").innerHTML = NEEDS.map((p, i) => `<label class="chip"><input type="checkbox" name="needs" id="need-${i}" value="${esc(p)}"><span>${esc(p)}</span></label>`).join("");
+
+// ngày: từ ngày mai
+const d0 = new Date(); d0.setDate(d0.getDate() + 1);
+const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+$("date").min = iso(d0);
+const dMax = new Date(); dMax.setDate(dMax.getDate() + 60); $("date").max = iso(dMax);
+
+// tệp
+let files = [];
+const fmt = (n) => n < 1024 * 1024 ? Math.round(n / 1024) + " KB" : (n / 1024 / 1024).toFixed(1) + " MB";
+function addFiles(list) {
+  const msgs = [];
+  for (const f of list) {
+    if (files.length >= MAX_FILES) { msgs.push(`Chỉ gửi tối đa ${MAX_FILES} tệp.`); break; }
+    if (f.size > MAX_SIZE) { msgs.push(`“${f.name}” nặng ${fmt(f.size)}, vượt 5MB.`); continue; }
+    if (files.some((x) => x.name === f.name && x.size === f.size)) continue;
+    files.push(f);
+  }
+  $("fileErr").textContent = msgs.join(" ");
+  renderFiles();
+}
+function renderFiles() {
+  $("files").innerHTML = files.map((f, i) => `<div class="file"><span>${esc(f.name)}</span><small>${fmt(f.size)}</small><button type="button" data-i="${i}" aria-label="Bỏ tệp ${esc(f.name)}">Bỏ</button></div>`).join("");
+  $("files").querySelectorAll("button").forEach((b) => b.onclick = () => { files.splice(Number(b.dataset.i), 1); renderFiles(); });
+}
+$("file").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+const drop = $("drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
+
+const toB64 = (f) => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => no(r.error); r.readAsDataURL(f); });
+const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((x) => x.value);
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = (id) => $(id).value.trim();
+  const errs = [];
+  if (!v("name")) errs.push("họ tên");
+  if (!/[0-9]{9,}/.test(v("phone").replace(/\D/g, ""))) errs.push("số điện thoại hợp lệ");
+  if (!v("detail")) errs.push("mô tả nhu cầu");
+  if (!v("date")) errs.push("ngày tư vấn");
+  if (!v("slot")) errs.push("khung giờ");
+  if (!$("consent").checked) errs.push("đồng ý để BVI liên hệ");
+  if (errs.length) { $("formErr").textContent = "Vui lòng bổ sung: " + errs.join(", ") + "."; return; }
+  $("formErr").textContent = "";
+  const btn = $("submit"); btn.disabled = true; btn.textContent = files.length ? "Đang tải tệp lên…" : "Đang gửi…";
+  try {
+    const payload = {
+      website: v("website"),
+      name: v("name"), org: v("org"), phone: v("phone"), email: v("email"), role: v("role"),
+      province: v("province"), industry: v("industry"), size: v("size"),
+      pains: checked("pains"), needs: checked("needs"), detail: v("detail"),
+      date: v("date"), slot: v("slot"), duration: checked("duration")[0], mode: checked("mode")[0],
+      source: v("source"), referrer: v("referrer"),
+      files: await Promise.all(files.map(async (f) => ({ name: f.name, mime: f.type || "application/octet-stream", size: f.size, data: await toB64(f) }))),
+      page: location.href, sent_at: new Date().toISOString(),
+    };
+    let res = { ok: true, demo: true };
+    if (ENDPOINT) {
+      const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+      res = await r.json();
+    }
+    if (!res.ok) throw new Error(res.message || res.error || "Gửi không thành công");
+    const [y, m, d] = payload.date.split("-");
+    $("doneText").textContent = `Lịch mong muốn: ${d}/${m}/${y}, ${payload.slot}, ${payload.duration}, ${payload.mode}. Nhân sự BVI sẽ liên hệ ${payload.phone} để xác nhận.` + (res.demo ? " (Bản chạy thử: chưa gửi đi.)" : "");
+    $("form").hidden = true; $("done").hidden = false; window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    $("formErr").textContent = "Chưa gửi được: " + (err.message || err) + ". Thử lại, hoặc nhắn Zalo 0901 403 819.";
+  } finally {
+    btn.disabled = false; btn.textContent = "Gửi nhu cầu và đặt lịch";
+  }
+});
+</script>
+</body>
+</html>
