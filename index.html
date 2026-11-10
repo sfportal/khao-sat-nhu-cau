@@ -56,14 +56,6 @@ textarea { min-height: 110px; resize: vertical; }
 .chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
 .group { display: grid; gap: 8px; }
 .group > b { font-size: 13px; color: var(--ink); }
-.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; background: var(--bg); display: grid; gap: 6px; cursor: pointer; }
-.drop.over { border-color: var(--accent); background: var(--accent-soft); }
-.drop b { color: var(--ink); }
-.files { display: grid; gap: 6px; }
-.file { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
-.file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file small { color: var(--muted); font-variant-numeric: tabular-nums; }
-.file button { font: inherit; border: 0; background: none; color: var(--err); font-weight: 600; cursor: pointer; padding: 2px 6px; }
 .err { color: var(--err); font-size: 13px; font-weight: 600; }
 .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
 .consent input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
@@ -132,17 +124,7 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
         <label class="f" for="detail"><span>Mô tả nhu cầu cụ thể <span class="req">*</span></span><span class="hint">Việc gì đang mất thời gian, tốn chi phí, hay sai sót? Đang dùng phần mềm gì? Mong muốn kết quả ra sao?</span>
           <textarea id="detail" name="detail" required placeholder="VD: Đơn hàng nhận qua Zalo của 5 nhân viên, cuối tháng tổng hợp mất 3 ngày, hay sót đơn. Muốn có một nơi quản lý đơn và báo cáo tự động."></textarea>
         </label>
-        <div class="group">
-          <b>Hình ảnh, tệp minh hoạ</b>
-          <span class="hint">Ảnh chụp màn hình phần mềm, mẫu báo cáo, quy trình hiện tại… Tối đa 5 tệp, mỗi tệp dưới 5MB (ảnh, PDF, Word, Excel).</span>
-          <label class="drop" id="drop" for="file">
-            <b>Bấm để chọn tệp</b>
-            <span class="hint">hoặc kéo thả tệp vào đây</span>
-          </label>
-          <input id="file" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt" hidden>
-          <div class="files" id="files"></div>
-          <p class="err" id="fileErr" role="alert"></p>
-        </div>
+        <p class="hint">Có ảnh chụp màn hình, mẫu báo cáo, quy trình hiện tại? Gửi qua Zalo 0901 403 819 sau khi đăng ký để buổi tư vấn sát hơn.</p>
       </section>
 
       <section class="card" aria-labelledby="h3s">
@@ -210,10 +192,12 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
 </div>
 
 <script>
-// ĐỊA CHỈ WEB APP CỦA APPS SCRIPT (xem README). Để trống thì form chạy thử, không gửi đi đâu.
-const ENDPOINT = "";
+// CẤU HÌNH (xem README)
+// BVI_KEY: khóa API BVI CHỈ có quyền leads_write. Khóa này công khai trong mã trang,
+// tuyệt đối không dùng khóa có quyền đọc. Để trống thì form chạy thử, không gửi đi đâu.
+const BVI_KEY = "";
+const LEADS_API = "https://pkckduidwfcncipwzdxa.supabase.co/functions/v1/api/v1/leads";
 
-const MAX_FILES = 5, MAX_SIZE = 5 * 1024 * 1024;
 const PAINS = ["Kinh doanh, bán hàng", "Marketing, nội dung", "Thiết kế, sáng tạo", "Quản lý công việc, nhân sự", "Theo dõi, giám sát vận hành", "Chi phí, hiệu quả"];
 const NEEDS = ["Làm video AI", "Thu thập và phân tích dữ liệu", "Website và trang quản lý", "Chatbot chăm sóc khách", "CRM, quản lý khách hàng", "Quản lý công việc", "Nhân viên số (Digital Worker)", "Số hoá vùng trồng FarmBase", "Đào tạo AI cho nhân viên", "Lộ trình AI tổng thể"];
 const $ = (id) => document.getElementById(id);
@@ -228,31 +212,11 @@ const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOSt
 $("date").min = iso(d0);
 const dMax = new Date(); dMax.setDate(dMax.getDate() + 60); $("date").max = iso(dMax);
 
-// tệp
-let files = [];
-const fmt = (n) => n < 1024 * 1024 ? Math.round(n / 1024) + " KB" : (n / 1024 / 1024).toFixed(1) + " MB";
-function addFiles(list) {
-  const msgs = [];
-  for (const f of list) {
-    if (files.length >= MAX_FILES) { msgs.push(`Chỉ gửi tối đa ${MAX_FILES} tệp.`); break; }
-    if (f.size > MAX_SIZE) { msgs.push(`“${f.name}” nặng ${fmt(f.size)}, vượt 5MB.`); continue; }
-    if (files.some((x) => x.name === f.name && x.size === f.size)) continue;
-    files.push(f);
-  }
-  $("fileErr").textContent = msgs.join(" ");
-  renderFiles();
+function showDone(payload, demo) {
+  const [y, m, d] = payload.date.split("-");
+  $("doneText").textContent = `Lịch mong muốn: ${d}/${m}/${y}, ${payload.slot}, ${payload.duration}, ${payload.mode}. Nhân sự BVI sẽ liên hệ ${payload.phone} để xác nhận.` + (demo ? " (Bản chạy thử: chưa gửi đi.)" : "");
+  $("form").hidden = true; $("done").hidden = false; window.scrollTo({ top: 0, behavior: "smooth" });
 }
-function renderFiles() {
-  $("files").innerHTML = files.map((f, i) => `<div class="file"><span>${esc(f.name)}</span><small>${fmt(f.size)}</small><button type="button" data-i="${i}" aria-label="Bỏ tệp ${esc(f.name)}">Bỏ</button></div>`).join("");
-  $("files").querySelectorAll("button").forEach((b) => b.onclick = () => { files.splice(Number(b.dataset.i), 1); renderFiles(); });
-}
-$("file").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
-const drop = $("drop");
-["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
-["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
-drop.addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
-
-const toB64 = (f) => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => no(r.error); r.readAsDataURL(f); });
 const checked = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((x) => x.value);
 
 $("form").addEventListener("submit", async (e) => {
@@ -267,7 +231,7 @@ $("form").addEventListener("submit", async (e) => {
   if (!$("consent").checked) errs.push("đồng ý để BVI liên hệ");
   if (errs.length) { $("formErr").textContent = "Vui lòng bổ sung: " + errs.join(", ") + "."; return; }
   $("formErr").textContent = "";
-  const btn = $("submit"); btn.disabled = true; btn.textContent = files.length ? "Đang tải tệp lên…" : "Đang gửi…";
+  const btn = $("submit"); btn.disabled = true; btn.textContent = "Đang gửi…";
   try {
     const payload = {
       website: v("website"),
@@ -276,18 +240,33 @@ $("form").addEventListener("submit", async (e) => {
       pains: checked("pains"), needs: checked("needs"), detail: v("detail"),
       date: v("date"), slot: v("slot"), duration: checked("duration")[0], mode: checked("mode")[0],
       source: v("source"), referrer: v("referrer"),
-      files: await Promise.all(files.map(async (f) => ({ name: f.name, mime: f.type || "application/octet-stream", size: f.size, data: await toB64(f) }))),
       page: location.href, sent_at: new Date().toISOString(),
     };
-    let res = { ok: true, demo: true };
-    if (ENDPOINT) {
-      const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-      res = await r.json();
+    if (payload.website) { showDone(payload, false); return; } // bẫy bot
+    const demo = !BVI_KEY;
+    const extId = "ksnc-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    // Gửi thẳng vào BVI Điều hành (trang Nhu cầu khách hàng)
+    const [y0, m0, d00] = payload.date.split("-");
+    const booking = `${d00}/${m0}/${y0}, ${payload.slot}, ${payload.duration}, ${payload.mode}`;
+    const head = ["LỊCH TƯ VẤN MONG MUỐN: " + booking];
+    if (payload.role) head.push("Chức vụ: " + payload.role);
+    if (payload.industry) head.push("Ngành: " + payload.industry + (payload.size ? " · " + payload.size : ""));
+    if (payload.pains.length) head.push("Mảng gặp khó: " + payload.pains.join(", "));
+    const detail = (head.join("\n") + "\n\n" + payload.detail).slice(0, 4000);
+    const lead = {
+      name: payload.name, org: payload.org, phone: payload.phone, email: payload.email, province: payload.province,
+      needs: payload.needs.length ? payload.needs : ["Tư vấn AI"], detail,
+      source: payload.source, source_note: "Form khảo sát nhu cầu AI · Lịch: " + booking,
+      referrer: payload.referrer, external_id: extId,
+    };
+    if (!demo) {
+      const r = await fetch(LEADS_API, { method: "POST", headers: { "Content-Type": "application/json", "X-API-Key": BVI_KEY }, body: JSON.stringify(lead) });
+      const j = await r.json().catch(() => ({}));
+      if (!j.ok) throw new Error(j.message || j.error || ("Lỗi " + r.status));
     }
-    if (!res.ok) throw new Error(res.message || res.error || "Gửi không thành công");
-    const [y, m, d] = payload.date.split("-");
-    $("doneText").textContent = `Lịch mong muốn: ${d}/${m}/${y}, ${payload.slot}, ${payload.duration}, ${payload.mode}. Nhân sự BVI sẽ liên hệ ${payload.phone} để xác nhận.` + (res.demo ? " (Bản chạy thử: chưa gửi đi.)" : "");
-    $("form").hidden = true; $("done").hidden = false; window.scrollTo({ top: 0, behavior: "smooth" });
+    showDone(payload, demo);
+    return;
+
   } catch (err) {
     $("formErr").textContent = "Chưa gửi được: " + (err.message || err) + ". Thử lại, hoặc nhắn Zalo 0901 403 819.";
   } finally {

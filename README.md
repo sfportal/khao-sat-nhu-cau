@@ -1,45 +1,31 @@
 # Khảo sát nhu cầu AI và đặt lịch tư vấn 1:1
 
-Form công khai cho khách (doanh nghiệp, HTX) gửi nhu cầu ứng dụng AI, tải ảnh/tệp minh hoạ (tối đa 5 tệp, mỗi tệp dưới 5MB) và chọn ngày giờ tư vấn 1:1 (30 hoặc 60 phút, online hoặc trực tiếp).
+Form công khai cho khách (doanh nghiệp, HTX) gửi nhu cầu ứng dụng AI và chọn ngày giờ tư vấn 1:1 (30 hoặc 60 phút, online hoặc trực tiếp). Nhu cầu gửi thẳng vào **BVI Điều hành › Nhu cầu khách hàng** qua `POST /v1/leads`.
 
 Địa chỉ form (sau khi bật GitHub Pages): https://sfportal.github.io/khao-sat-nhu-cau/
 
-## Luồng dữ liệu
+## Cài đặt
 
-```
-Khách điền form (GitHub Pages, trang tĩnh)
-        │  POST JSON, kèm tệp dạng base64
-        ▼
-Google Apps Script (apps-script/Code.gs, chạy bằng tài khoản Google của BVI)
-        ├─ Lưu tệp vào Drive: mỗi khách một thư mục
-        ├─ Ghi một dòng vào Google Sheet "Khảo sát nhu cầu AI - Quản lý"
-        ├─ POST /v1/leads về BVI Điều hành (khóa API nằm trong Script Properties)
-        └─ Email báo khách mới (tùy chọn)
-```
+1. Owner tạo trong BVI Điều hành một khóa API **chỉ có quyền `leads_write`**, đặt tên dễ nhận như `form-khao-sat`.
+2. Trong `index.html`, dán khóa vào dòng `const BVI_KEY = "";`, commit, push.
+3. Settings › Pages › Deploy from a branch › `main` / root.
+4. Điền thử một lần, kiểm tra bản ghi mới trong trang Nhu cầu khách hàng.
 
-Khóa API BVI **không** nằm trong trang web, đúng khuyến cáo của tài liệu API.
+`BVI_KEY` để trống thì form chạy thử: kiểm tra đủ trường, hiện màn hình cảm ơn, không gửi đi đâu.
 
-## Xem và quản lý khách
+## Lưu ý về khóa
 
-- **BVI Điều hành › Nhu cầu khách hàng**: khách vào ở trạng thái Mới, nguồn theo lựa chọn của khách (mặc định "Hội thảo AI 10/11"). Phần mô tả mở đầu bằng dòng `LỊCH TƯ VẤN MONG MUỐN`, cuối có link thư mục tệp đính kèm. Nhân sự đổi trạng thái, gán người phụ trách, hẹn ngày gọi lại ngay trên trang này.
-- **Google Sheet quản lý**: đủ mọi trường kể cả SĐT, email, link tệp. Cột Trạng thái có danh sách chọn (Mới, Đã liên hệ, Đã hẹn, Đã tư vấn, Đã cọc, Đã ký, Không theo), cột Người phụ trách và Ghi chú để điền tay.
-- **Thư mục Drive**: tệp khách gửi, đặt tên theo ngày giờ và tên công ty. Chỉ chủ tài khoản thấy, chia sẻ thư mục cho nhân sự cần xem.
+Khóa nằm trong mã trang công khai, ai xem mã nguồn cũng thấy. Vì vậy **chỉ dùng khóa có duy nhất quyền `leads_write`**: người lấy được khóa không đọc được dữ liệu nào, tệ nhất chỉ gửi được nhu cầu rác. Khi thấy rác, owner thu hồi khóa trong BVI Điều hành, tạo khóa mới và thay vào `index.html`.
 
-## Cài đặt (làm một lần, khoảng 10 phút)
+## Dữ liệu gửi vào BVI Điều hành
 
-1. **Xin khóa API**: trong BVI Điều hành, owner tạo một khóa chỉ có quyền `leads_write`.
-2. **Tạo Apps Script**: vào https://script.google.com bằng tài khoản Google của BVI › Dự án mới › dán toàn bộ `apps-script/Code.gs`.
-3. **Đặt khóa**: Cài đặt dự án (bánh răng) › Thuộc tính tập lệnh › thêm `BVI_KEY` = khóa vừa xin. Tùy chọn: `NOTIFY_EMAIL` = email nhận báo.
-4. **Chạy `setup`**: chọn hàm `setup` › Chạy › cấp quyền. Script tạo Sheet và thư mục Drive, lưu ID vào thuộc tính. Xem link trong Nhật ký thực thi.
-5. **Triển khai**: Triển khai › Triển khai mới › Loại: Ứng dụng web › Thực thi với tư cách: **Tôi** › Ai có quyền truy cập: **Bất kỳ ai** › Triển khai. Sao chép URL dạng `https://script.google.com/macros/s/.../exec`.
-6. **Gắn vào form**: trong `index.html`, dán URL đó vào dòng `const ENDPOINT = "";` rồi commit.
-7. **Bật GitHub Pages**: Settings › Pages › Deploy from a branch › `main` / root.
-8. **Chạy thử**: điền form một lần, kiểm tra có dòng mới trong Sheet, thư mục tệp trên Drive và bản ghi mới trong trang Nhu cầu khách hàng.
+| Trường | Nội dung |
+|---|---|
+| `name`, `org`, `phone`, `email`, `province` | Thông tin khách điền |
+| `needs` | Dịch vụ quan tâm khách chọn |
+| `detail` | Dòng đầu `LỊCH TƯ VẤN MONG MUỐN: ngày, khung giờ, thời lượng, hình thức`, sau đó chức vụ, ngành, quy mô, mảng gặp khó và mô tả nhu cầu |
+| `source`, `referrer` | Nguồn (mặc định "Hội thảo AI 10/11"), người giới thiệu |
+| `source_note` | `Form khảo sát nhu cầu AI · Lịch: …` |
+| `external_id` | Mã riêng mỗi lần gửi, `ksnc-…` |
 
-Khi sửa `Code.gs`: Triển khai › Quản lý bản triển khai › sửa › Phiên bản mới (giữ nguyên URL).
-
-## Ghi chú
-
-- `ENDPOINT` để trống thì form chạy thử: kiểm tra đủ trường, hiện màn hình cảm ơn, không gửi đi đâu.
-- Có ô ẩn chống bot. Mỗi lần gửi có `external_id` riêng nên BVI Điều hành không tạo trùng khi gửi lại.
-- Không ghi khóa, mật khẩu hay dữ liệu khách vào repo này.
+Nhân sự xem, đổi trạng thái, gán người phụ trách và hẹn ngày gọi lại ngay trong trang Nhu cầu khách hàng. Ảnh, tệp minh hoạ khách gửi qua Zalo 0901 403 819.
